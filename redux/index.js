@@ -25,6 +25,8 @@ if (
   )
 }
 
+// 导出所有要暴露出来的api
+
 export {
   createStore,
   combineReducers,

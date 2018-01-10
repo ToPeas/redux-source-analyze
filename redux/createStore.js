@@ -1,5 +1,5 @@
-import isPlainObject from "lodash/isPlainObject"
-import $$observable from "symbol-observable"
+import isPlainObject from 'lodash/isPlainObject'
+import $$observable from 'symbol-observable'
 
 /**
  * These are private action types reserved by Redux.
@@ -7,9 +7,9 @@ import $$observable from "symbol-observable"
  * If the current state is undefined, you must return the initial state.
  * Do not reference these action types directly in your code.
  */
-// 定义 Redux Action 的初始化 type
+// 定义 Redux Action 的初始化state的时候要使用的type
 export const ActionTypes = {
-  INIT: "@@redux/INIT"
+  INIT: '@@redux/INIT'
 }
 
 /**
@@ -42,28 +42,25 @@ export const ActionTypes = {
 
 /*
   reducer是一个函数，接受2个参数，一个是分别是当前的state树和要处理的action，返回新的state树。
-  在初始化state的时候，如果
-
-
 */
 export default function createStore(reducer, preloadedState, enhancer) {
   // 判断preloadedState是一个函数并且enhancer是未定义，就调换位置
-  if (typeof preloadedState === "function" && typeof enhancer === "undefined") {
+  if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
     enhancer = preloadedState
     preloadedState = undefined
   }
   //判断enhancer不是undefined
-  if (typeof enhancer !== "undefined") {
+  if (typeof enhancer !== 'undefined') {
     //判断enhancer如果不是函数报错
-    if (typeof enhancer !== "function") {
-      throw new Error("Expected the enhancer to be a function.")
+    if (typeof enhancer !== 'function') {
+      throw new Error ('Expected the enhancer to be a function.')
     }
-    // 返回一个强化过的createStore
-    return enhancer(createStore)(reducer, preloadedState)
+    // 返回一个强化过的createStore(也就是被中间件处理过后的createStore)
+    return enhancer (createStore) (reducer, preloadedState)
   }
   //判断 reducer 不是一个函数就抛出错误
-  if (typeof reducer !== "function") {
-    throw new Error("Expected the reducer to be a function.")
+  if (typeof reducer !== 'function') {
+    throw new Error ('Expected the reducer to be a function.')
   }
 
   let currentReducer = reducer
@@ -74,7 +71,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
   function ensureCanMutateNextListeners() {
     if (nextListeners === currentListeners) {
-      nextListeners = currentListeners.slice()
+      nextListeners = currentListeners.slice ()
     }
   }
 
@@ -112,14 +109,14 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @returns {Function} A function to remove this change listener.
    */
   function subscribe(listener) {
-    if (typeof listener !== "function") {
-      throw new Error("Expected listener to be a function.")
+    if (typeof listener !== 'function') {
+      throw new Error ('Expected listener to be a function.')
     }
 
     let isSubscribed = true
 
-    ensureCanMutateNextListeners()
-    nextListeners.push(listener)
+    ensureCanMutateNextListeners ()
+    nextListeners.push (listener)
 
     return function unsubscribe() {
       if (!isSubscribed) {
@@ -128,9 +125,9 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
       isSubscribed = false
 
-      ensureCanMutateNextListeners()
-      const index = nextListeners.indexOf(listener)
-      nextListeners.splice(index, 1)
+      ensureCanMutateNextListeners ()
+      const index = nextListeners.indexOf (listener)
+      nextListeners.splice (index, 1)
     }
   }
 
@@ -162,40 +159,40 @@ export default function createStore(reducer, preloadedState, enhancer) {
   // action是触发state改变的唯一途径
   function dispatch(action) {
     // 处理action必须是普通对象，不然报错
-    if (!isPlainObject(action)) {
-      throw new Error(
-        "Actions must be plain objects. " +
-          "Use custom middleware for async actions."
+    if (!isPlainObject (action)) {
+      throw new Error (
+        'Actions must be plain objects. ' +
+        'Use custom middleware for async actions.'
       )
     }
     // 处理action的type不能为undefined，不然报错
-    if (typeof action.type === "undefined") {
-      throw new Error(
+    if (typeof action.type === 'undefined') {
+      throw new Error (
         'Actions may not have an undefined "type" property. ' +
-          "Have you misspelled a constant?"
+        'Have you misspelled a constant?'
       )
     }
-    // 如果dispatch正在执行的时候，redcuer又要执行dispatch，报错
+    // 如果dispatch正在执行的时候，reducer又要执行dispatch，报错
     if (isDispatching) {
-      throw new Error("Reducers may not dispatch actions.")
+      throw new Error ('Reducers may not dispatch actions.')
     }
 
     try {
-      //标记 dispatch 正在运行
+      //标记 dispatch 正在执行
       isDispatching = true
       //执行当前 Reducer 函数返回新的 state
-      currentState = currentReducer(currentState, action)
+      currentState = currentReducer (currentState, action)
     } finally {
+      // 最后不论怎样都把isDispatching标记成未执行状态
       isDispatching = false
     }
 
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
-      listener()
+      listener ()
     }
     //返回传入的 action 对象
-
     return action
   }
 
@@ -210,12 +207,12 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @returns {void}
    */
   function replaceReducer(nextReducer) {
-    if (typeof nextReducer !== "function") {
-      throw new Error("Expected the nextReducer to be a function.")
+    if (typeof nextReducer !== 'function') {
+      throw new Error ('Expected the nextReducer to be a function.')
     }
 
     currentReducer = nextReducer
-    dispatch({ type: ActionTypes.INIT })
+    dispatch ({ type: ActionTypes.INIT })
   }
 
   /**
@@ -236,18 +233,18 @@ export default function createStore(reducer, preloadedState, enhancer) {
        * emission of values from the observable.
        */
       subscribe(observer) {
-        if (typeof observer !== "object") {
-          throw new TypeError("Expected the observer to be an object.")
+        if (typeof observer !== 'object') {
+          throw new TypeError ('Expected the observer to be an object.')
         }
 
         function observeState() {
           if (observer.next) {
-            observer.next(getState())
+            observer.next (getState ())
           }
         }
 
-        observeState()
-        const unsubscribe = outerSubscribe(observeState)
+        observeState ()
+        const unsubscribe = outerSubscribe (observeState)
         return { unsubscribe }
       },
 
@@ -260,10 +257,10 @@ export default function createStore(reducer, preloadedState, enhancer) {
   // When a store is created, an "INIT" action is dispatched so that every
   // reducer returns their initial state. This effectively populates
   // the initial state tree.
-  
+
   //reducer 返回其初始状态
   //初始化 store 里的 state tree
-  dispatch({ type: ActionTypes.INIT })
+  dispatch ({ type: ActionTypes.INIT })
 
   return {
     dispatch,
